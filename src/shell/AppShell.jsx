@@ -663,7 +663,12 @@ function AppShell({
     constructionFinance: <ConstructionFinanceScreen onMenuClick={mc} />,
     inventory: <InventoryScreen onMenuClick={mc} />,
     progress: <WorkProgressScreen onMenuClick={mc} />,
-    unitdata: <UnitDataScreen onMenuClick={mc} />,
+    unitdata: (
+      <UnitDataScreen
+        onMenuClick={mc}
+        currentUserName={userFullName(currentUser)}
+      />
+    ),
     leadsListing: (
       <LeadsListingScreen
         onMenuClick={mc}
