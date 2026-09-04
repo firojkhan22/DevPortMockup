@@ -1,0 +1,998 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Developer Portal — React + Bootstrap Prototype</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --navy: #0b3d7a;
+        --navy-dark: #082c58;
+        --accent: #c02b2b;
+        --bg: #f4f6f9;
+      }
+      body {
+        background: var(--bg);
+        font-family: "Segoe UI", Arial, sans-serif;
+      }
+      /* Project map hover bubble (Leaflet popup) styling, to match the
+         rest of the app's cards rather than Leaflet's plain default. */
+      .map-pin-popup .leaflet-popup-content-wrapper {
+        border-radius: 10px;
+        box-shadow: 0 6px 20px rgba(20, 40, 80, 0.18);
+      }
+      .map-pin-popup .leaflet-popup-content {
+        margin: 10px 12px;
+        font-family: "Segoe UI", Arial, sans-serif;
+      }
+      .map-pin-popup-title {
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--navy);
+      }
+      .map-pin-popup-loc {
+        font-size: 12px;
+        color: #5c6b80;
+        margin-bottom: 6px;
+      }
+      .map-pin-popup-stats {
+        font-size: 12px;
+        line-height: 1.5;
+        color: #33415c;
+      }
+      .sidebar {
+        background: var(--navy);
+        color: #fff;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        align-self: flex-start;
+        overflow-y: auto;
+        overflow-x: hidden;
+        transition: width 0.22s ease;
+        flex-shrink: 0;
+      }
+      .sidebar.collapsed {
+        width: 68px !important;
+      }
+      .sidebar.collapsed .nav-label,
+      .sidebar.collapsed .nav-section,
+      .sidebar.collapsed .sidebar-id,
+      .sidebar.collapsed .brand-text {
+        display: none;
+      }
+      .sidebar.collapsed .nav-item-custom {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+      }
+      .sidebar-toggle-btn {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: #fff;
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        flex-shrink: 0;
+        transition: background 0.15s;
+      }
+      .sidebar-toggle-btn:hover {
+        background: rgba(255, 255, 255, 0.28);
+      }
+      .masthead-menu-btn {
+        background: #eef4fc;
+        border: 1.5px solid #c8d9f0;
+        color: var(--navy);
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+        flex-shrink: 0;
+        transition:
+          background 0.15s,
+          border-color 0.15s;
+      }
+      .masthead-menu-btn:hover {
+        background: #dce9fb;
+        border-color: var(--navy);
+      }
+      .masthead-menu-btn.attention {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+        animation: pulseAttention 1.8s ease-in-out 2;
+      }
+      @keyframes pulseAttention {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(192, 43, 43, 0.4);
+        }
+        50% {
+          box-shadow: 0 0 0 6px rgba(192, 43, 43, 0);
+        }
+      }
+      .brand-mark {
+        width: 32px;
+        height: 32px;
+        background: var(--accent);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 13px;
+        color: #fff;
+      }
+      .brand-logo {
+        height: 45px;
+        width: auto;
+        display: block;
+      }
+      .home-hero {
+        background: linear-gradient(
+          135deg,
+          #eef4fc 0%,
+          #f7f9fc 60%,
+          #ffffff 100%
+        );
+        border-radius: 20px;
+        padding: 56px 24px 40px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+      .hero-blob {
+        position: absolute;
+        top: -60px;
+        right: -60px;
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(11, 61, 122, 0.08) 0%,
+          rgba(11, 61, 122, 0) 70%
+        );
+      }
+      .profile-strip {
+        background: #fff;
+        border: 1px solid #e3e7ee;
+        border-radius: 16px;
+        padding: 16px 20px;
+      }
+      .profile-strip-avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--navy), #1a5aa8);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+      .home-search {
+        max-width: 640px;
+        margin: 0 auto;
+        position: relative;
+      }
+      .home-search input {
+        border-radius: 50px;
+        padding: 16px 24px 16px 52px;
+        font-size: 15px;
+        border: 2px solid #dbe3ee;
+        box-shadow: 0 8px 24px rgba(11, 61, 122, 0.08);
+        transition:
+          box-shadow 0.2s,
+          border-color 0.2s;
+      }
+      .home-search input:focus {
+        border-color: var(--navy);
+        box-shadow: 0 8px 28px rgba(11, 61, 122, 0.16);
+        outline: none;
+      }
+      .home-search .search-icon {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9aa5b3;
+        font-size: 16px;
+      }
+      .home-pill {
+        border-radius: 20px;
+        padding: 5px 13px;
+        font-size: 11.5px;
+        font-weight: 600;
+        border: none;
+        background: #eef1f6;
+        color: var(--navy);
+        transition: all 0.18s;
+      }
+      .home-pill:hover {
+        background: #e2e8f2;
+      }
+      .home-pill.active {
+        background: var(--navy);
+        color: #fff;
+      }
+      .promo-banner {
+        background: linear-gradient(90deg, #0b3d7a, #0d4a95);
+        color: #fff;
+        border-radius: 12px;
+        padding: 12px 20px;
+        font-size: 13.5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .promo-banner a {
+        color: #fff;
+        text-decoration: underline;
+        font-weight: 600;
+      }
+      .quick-action-btn {
+        border: none;
+        background: #e7f0fc;
+        color: var(--navy);
+        border-radius: 9px;
+        padding: 10px 13px;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-weight: 600;
+        font-size: 12px;
+        width: 100%;
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s,
+          background 0.15s;
+      }
+      .quick-action-btn:hover {
+        background: #d8e7fa;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(11, 61, 122, 0.14);
+      }
+      .quick-action-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: rgba(11, 61, 122, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 12px;
+      }
+      .guideline-placeholder {
+        border: 1px dashed #c8d9f0;
+        border-radius: 12px;
+        padding: 16px;
+        color: #5c6b80;
+        font-size: 13px;
+        text-align: center;
+        background: #f9fbfd;
+      }
+      .builder-carousel {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #f4f7fb;
+        border: 1px solid #eef0f4;
+        height: 280px;
+      }
+      .builder-slide {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        transition: opacity 0.8s ease;
+        text-align: center;
+      }
+      .carousel-real-img {
+        max-width: 92%;
+        max-height: 170px;
+        border-radius: 10px;
+        object-fit: contain;
+        margin-bottom: 6px;
+        box-shadow: 0 6px 18px rgba(11, 61, 122, 0.12);
+        background: #fff;
+      }
+      .builder-slide.active {
+        opacity: 1;
+      }
+      .builder-slide .cap {
+        color: var(--navy);
+        font-weight: 700;
+        font-size: 14px;
+        margin-top: 14px;
+      }
+      .builder-slide .sub {
+        color: #57606f;
+        font-size: 11.5px;
+        margin-top: 4px;
+      }
+      .carousel-dots {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+        margin-top: 14px;
+      }
+      .carousel-dots span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #d3dceb;
+        transition: background 0.3s;
+      }
+      .carousel-dots span.active {
+        background: var(--accent);
+        width: 16px;
+        border-radius: 4px;
+      }
+      .nav-item-custom {
+        padding: 10px 20px;
+        font-size: 13px;
+        color: #dbe6f5;
+        cursor: pointer;
+        border-left: 3px solid transparent;
+        display: flex;
+        align-items: center;
+      }
+      .nav-item-custom:hover {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .nav-item-custom.active {
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        border-left-color: var(--accent);
+      }
+      .verify-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 20px;
+        font-size: 13px;
+        flex-wrap: wrap;
+      }
+      .verify-banner-danger {
+        background: #fdeaea;
+        color: #8a2a2a;
+        border-bottom: 1px solid #f5c6c6;
+      }
+      .verify-banner-warning {
+        background: #fff3e0;
+        color: #7a5b16;
+        border-bottom: 1px solid #f0d9a8;
+      }
+      .nav-item-custom.nav-item-locked {
+        color: rgba(219, 230, 245, 0.7);
+      }
+      .nav-item-custom.nav-item-locked:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .nav-lock-icon {
+        font-size: 10.5px;
+        opacity: 0.8;
+      }
+      .sidebar.collapsed .nav-lock-icon {
+        display: none;
+      }
+      .nav-section {
+        padding: 14px 20px 4px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+        color: #a9c6ec;
+      }
+      .kpi-card {
+        border-radius: 14px;
+        border: 1px solid #e9ecf2;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(20, 40, 80, 0.04);
+        transition:
+          box-shadow 0.2s,
+          transform 0.2s;
+      }
+      .kpi-card:hover {
+        box-shadow: 0 6px 20px rgba(20, 40, 80, 0.08);
+      }
+      .page-enter {
+        animation: pageFadeIn 0.35s ease both;
+      }
+      @keyframes pageFadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .topbar-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #0b3d7a, #1a5aa8);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+        flex-shrink: 0;
+      }
+      .section-divider {
+        border: none;
+        border-top: 1px solid #eef0f4;
+        margin: 20px 0;
+      }
+      .form-control:focus,
+      .form-select:focus {
+        border-color: var(--navy);
+        box-shadow: 0 0 0 3px rgba(11, 61, 122, 0.1);
+      }
+      .form-control,
+      .form-select {
+        border-color: #dbe3ee;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s;
+      }
+      .form-label {
+        color: #33415c;
+      }
+      .table thead th {
+        text-transform: uppercase;
+        font-size: 11.5px;
+        letter-spacing: 0.05em;
+        color: #5c6d84;
+        background: #f7f9fc;
+        border-bottom: 2px solid #eef0f4 !important;
+        padding-top: 12px;
+        padding-bottom: 12px;
+      }
+      .table tbody tr {
+        transition: background 0.12s;
+      }
+      .table tbody tr:hover {
+        background: #f7f9fc;
+      }
+      .table tbody tr[role="button"] {
+        cursor: pointer;
+      }
+      .table tbody td {
+        padding-top: 13px;
+        padding-bottom: 13px;
+      }
+      .repeat-row {
+        transition:
+          box-shadow 0.15s,
+          border-color 0.15s;
+      }
+      .repeat-row:hover {
+        border-color: #c8d9f0;
+        box-shadow: 0 2px 8px rgba(11, 61, 122, 0.06);
+      }
+      .btn-navy {
+        box-shadow: 0 2px 6px rgba(11, 61, 122, 0.18);
+      }
+      .btn-navy:hover {
+        box-shadow: 0 4px 12px rgba(11, 61, 122, 0.26);
+      }
+      .btn-outline-navy {
+        transition: background 0.15s;
+      }
+      .section-eyebrow {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--navy);
+        opacity: 0.7;
+        margin-bottom: 2px;
+      }
+      .icon-chip {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        background: #eaf1fb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+      }
+      .topproj-box {
+        background: #eef4fc;
+        border-radius: 10px;
+      }
+      .bar-chart {
+        height: 200px;
+      }
+      .bar-col {
+        background: var(--navy);
+        border-radius: 4px 4px 0 0;
+        width: 100%;
+      }
+      .badge-navy {
+        background: #eaf1fb;
+        color: var(--navy);
+      }
+      .btn-navy {
+        background: var(--navy);
+        color: #fff;
+        border: none;
+      }
+      .btn-navy:hover {
+        background: var(--navy-dark);
+        color: #fff;
+      }
+      .btn-outline-navy {
+        border: 1px solid var(--navy);
+        color: var(--navy);
+        background: #fff;
+      }
+      .login-left {
+        background: #ffffff;
+        color: var(--navy);
+        min-height: 100vh;
+        border-right: 1px solid #eef0f4;
+        position: relative;
+        overflow: hidden;
+      }
+      .login-left::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: var(--accent);
+        z-index: 2;
+      }
+      .login-watermark {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center 30%;
+        z-index: 0;
+      }
+      .login-left-content {
+        position: relative;
+        z-index: 1;
+      }
+      .login-hero-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(11, 61, 122, 0.08);
+        border: 1px solid rgba(11, 61, 122, 0.15);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: var(--navy);
+      }
+      .login-hero-title {
+        font-size: 35px;
+        font-weight: 700;
+        line-height: 1.3;
+        margin: 22px 0 18px;
+        color: var(--navy);
+      }
+      .login-hero-sub {
+        font-size: 17px;
+        color: #4c5561;
+        /*color: #5a6779;*/
+        max-width: 340px;
+        line-height: 1.6;
+      }
+      .guideline-pill {
+        background: #eaf1fb;
+        color: var(--navy);
+        display: inline-flex;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 11.5px;
+        font-weight: 600;
+      }
+      .guide-icon {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--navy);
+        color: #fff;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+      }
+      .login-tabs .nav-link {
+        color: #57606f;
+        font-weight: 600;
+        font-size: 13.5px;
+      }
+      .login-tabs .nav-link.active {
+        color: var(--navy);
+        border-bottom: 2px solid var(--navy);
+        background: transparent;
+      }
+      /* ---- Section / wizard tabs (Complete Project Lead, etc.) ---- */
+      .section-tabs-wrap {
+        position: relative;
+        border-bottom: 1px solid #e3e7ee;
+      }
+      .section-tabs {
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        padding-bottom: 1px;
+      }
+      .section-tabs::-webkit-scrollbar {
+        height: 5px;
+      }
+      .section-tabs::-webkit-scrollbar-thumb {
+        background: #dbe3ee;
+        border-radius: 10px;
+      }
+      .section-tab {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        flex-shrink: 0;
+        border: none;
+        background: transparent;
+        color: #57606f;
+        font-weight: 600;
+        font-size: 13.5px;
+        padding: 10px 16px;
+        border-radius: 8px 8px 0 0;
+        border-bottom: 3px solid transparent;
+        transition:
+          color 0.15s,
+          background 0.15s,
+          border-color 0.15s;
+      }
+      .section-tab:hover {
+        color: var(--navy);
+        background: #f2f6fc;
+      }
+      .section-tab.active {
+        color: var(--navy);
+        background: #eaf1fb;
+        border-bottom: 3px solid var(--navy);
+      }
+      .section-tab-num {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #e3e7ee;
+        color: #57606f;
+        font-size: 11px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition:
+          background 0.15s,
+          color 0.15s;
+      }
+      .section-tab.active .section-tab-num {
+        background: var(--navy);
+        color: #fff;
+      }
+      .section-tab.complete .section-tab-num {
+        background: #1f9d55;
+        color: #fff;
+      }
+      @media (max-width: 767px) {
+        .section-tab-label {
+          display: none;
+        }
+        .section-tab {
+          padding: 10px 12px;
+        }
+        .section-tab-num {
+          width: 24px;
+          height: 24px;
+          font-size: 12px;
+        }
+      }
+      .section-tabs-wrap {
+        display: flex;
+        align-items: center;
+      }
+      .section-tabs-wrap .section-tabs {
+        flex: 1;
+        min-width: 0;
+      }
+      .section-tabs-scroll-btn {
+        flex-shrink: 0;
+        width: 28px;
+        height: 32px;
+        border: 1px solid #e3e7ee;
+        background: #fff;
+        color: var(--navy);
+        font-size: 18px;
+        line-height: 1;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 1px 3px rgba(20, 30, 60, 0.12);
+      }
+      .section-tabs-scroll-btn-left {
+        margin-right: 4px;
+      }
+      .section-tabs-scroll-btn-right {
+        margin-left: 4px;
+      }
+      .section-tab-review {
+        font-weight: 700;
+      }
+      .section-tab-review .section-tab-num {
+        background: #1f9d55;
+        color: #fff;
+      }
+      /* ---- RERA lead import modal ---- */
+      .rera-lead-row {
+        border: 1px solid #e3e7ee;
+        border-radius: 10px;
+        padding: 12px 14px;
+        cursor: pointer;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s,
+          background 0.15s;
+      }
+      .rera-lead-row:hover {
+        border-color: #c8d9f0;
+        background: #f7faff;
+      }
+      .rera-lead-row.selected {
+        border-color: var(--navy);
+        background: #eaf1fb;
+        box-shadow: 0 0 0 3px rgba(11, 61, 122, 0.1);
+      }
+      .otp-box {
+        width: 42px;
+        height: 48px;
+        text-align: center;
+        font-size: 18px;
+      }
+      .modal-backdrop-custom {
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 20, 35, 0.5);
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      .pk-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: #eaf1fb;
+        color: var(--navy);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin: 0 auto;
+      }
+      .stepper-dot {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #e3e7ee;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .stepper-dot.now {
+        background: var(--navy);
+      }
+      .stepper-dot.done {
+        background: #1c9e6b;
+      }
+      .step-label {
+        font-size: 11.5px;
+        color: #57606f;
+      }
+      .status-pill {
+        font-size: 11.5px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-weight: 600;
+      }
+      .querycard {
+        border: 1px solid #e3e7ee;
+        border-radius: 10px;
+      }
+      .grid-filter-row td {
+        background: #fafbfd;
+        border-bottom: 1px solid #e3e7ee;
+      }
+      .grid-filter-row input {
+        min-width: 90px;
+      }
+      .icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        flex: 0 0 auto;
+      }
+      .icon-btn svg {
+        width: 20px;
+        height: 20px;
+      }
+      .actions-cell {
+        white-space: nowrap;
+        display: flex;
+        gap: 4px;
+      }
+      .repeat-row {
+        border: 1px solid #e3e7ee;
+        border-radius: 10px;
+        background: #fbfcfe;
+      }
+      .gear-btn {
+        position: fixed;
+        top: 14px;
+        right: 14px;
+        z-index: 1200;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #fff;
+        border: 1px solid #e3e7ee;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 15px;
+      }
+      @media (max-width: 767.98px) {
+        .hide-mobile {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+    <!-- Real OCR engine for cancelled-cheque auto-fill (client-side, no server) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+
+    <script type="text/babel" src="src/bootstrap/react-hooks.js"></script>
+    <script type="text/babel" src="src/data/projects.js"></script>
+    <script type="text/babel" src="src/data/company.js"></script>
+    <script type="text/babel" src="src/data/users.js"></script>
+    <script type="text/babel" src="src/data/brand-assets.js"></script>
+    <script type="text/babel" src="src/data/auth.js"></script>
+    <script type="text/babel" src="src/data/rera.js"></script>
+    <script type="text/babel" src="src/data/nav.js"></script>
+    <script type="text/babel" src="src/data/grid-utils.js"></script>
+    <script type="text/babel" src="src/data/maps.js"></script>
+    <script type="text/babel" src="src/data/work-progress.js"></script>
+    <script type="text/babel" src="src/data/unit-data.js"></script>
+    <script type="text/babel" src="src/data/leads.js"></script>
+    <script type="text/babel" src="src/data/campaigns.js"></script>
+    <script type="text/babel" src="src/data/disbursement.js"></script>
+    <script type="text/babel" src="src/components/common/Modal.jsx"></script>
+    <script type="text/babel" src="src/components/common/FormElements.jsx"></script>
+    <script type="text/babel" src="src/components/common/ProjectPickerField.jsx"></script>
+    <script type="text/babel" src="src/components/common/PasswordPolicyChecklist.jsx"></script>
+    <script type="text/babel" src="src/components/common/GridControls.jsx"></script>
+    <script type="text/babel" src="src/components/common/Icons.jsx"></script>
+    <script type="text/babel" src="src/components/common/TopBar.jsx"></script>
+    <script type="text/babel" src="src/components/common/FilterDropdown.jsx"></script>
+    <script type="text/babel" src="src/components/common/AccessFilterBar.jsx"></script>
+    <script type="text/babel" src="src/components/common/AccessLevelPicker.jsx"></script>
+    <script type="text/babel" src="src/components/common/ReviewHelpers.jsx"></script>
+    <script type="text/babel" src="src/components/common/FileUpload.jsx"></script>
+    <script type="text/babel" src="src/components/common/ChatbotWidget.jsx"></script>
+    <script type="text/babel" src="src/components/common/ForgotUserIdModal.jsx"></script>
+    <script type="text/babel" src="src/components/common/DemoSettingsModal.jsx"></script>
+    <script type="text/babel" src="src/shell/Sidebar.jsx"></script>
+    <script type="text/babel" src="src/shell/TopMasthead.jsx"></script>
+    <script type="text/babel" src="src/screens/auth/LoginScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/auth/RegistrationScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/auth/ForgotPasswordScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/overview/HomeScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/overview/DashboardScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/overview/ProfileScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/overview/AccessRevokedScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/company/CompanyListingScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/company/CompanyEntryScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/company/DeveloperProfileScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/company/CompanyUsersScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/users/UserFormScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/users/ReviewUserPanel.jsx"></script>
+    <script type="text/babel" src="src/screens/users/UsersScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/users/PasskeyScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/projects/ProjectsMapView.jsx"></script>
+    <script type="text/babel" src="src/screens/projects/ProjectsScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/projects/ProjectSummaryTabs.jsx"></script>
+    <script type="text/babel" src="src/screens/projects/ProjectSummaryScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/projects/RERASearchBox.jsx"></script>
+    <script type="text/babel" src="src/screens/projects/NewProjectScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/projects/QueryModals.jsx"></script>
+    <script type="text/babel" src="src/screens/projects/RaiseQueryScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/projects/ProjectNotificationsScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/projects/QueriesScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/projects/MyQueriesScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/project-data/BankListingScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/project-data/BankEntryScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/project-data/RERAScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/project-data/OCScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/project-data/ConstructionFinanceScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/project-data/InventoryScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/project-data/WorkProgressFileViewModal.jsx"></script>
+    <script type="text/babel" src="src/screens/project-data/WorkProgressScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/project-data/WorkProgressUpdateScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/project-data/WorkProgressHistoryScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/project-data/UnitDataScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/business/LeadsListingScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/business/LeadsEntryScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/business/CampaignsListingScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/business/CampaignViewModal.jsx"></script>
+    <script type="text/babel" src="src/screens/business/CampaignEntryScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/business/BankCampaignsScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/mis/DisbursementDetailModal.jsx"></script>
+    <script type="text/babel" src="src/screens/mis/DisbursementStatementScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/tools/DisbursementScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/tools/CalculatorsScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/tools/ProjectCoordinatorsScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/tools/IssueListingScreen.jsx"></script>
+    <script type="text/babel" src="src/screens/tools/RaiseIssueScreen.jsx"></script>
+    <script type="text/babel" src="src/shell/AppShell.jsx"></script>
+    <script type="text/babel" src="src/App.jsx"></script>
+    <script type="text/babel" src="src/main.jsx"></script>
+  </body>
+</html>
