@@ -15,6 +15,10 @@ function UsersScreen({
   const rows = users || [];
   const [reviewingUser, setReviewingUser] = useState(null);
   const [onlyNeedsReview, setOnlyNeedsReview] = useState(false);
+  // A tile drill-down ("frozen" / "due_soon" / "active" / "all").
+  // While set, the grid shows only that slice and every other search
+  // criterion is cleared; applying any normal filter clears it.
+  const [tileFilter, setTileFilter] = useState(null);
 
   const dueSoonCount = rows.filter(
     (r) => userReviewState(r) === "due_soon",
@@ -22,17 +26,49 @@ function UsersScreen({
   const frozenCount = rows.filter(
     (r) => userReviewState(r) === "frozen",
   ).length;
+  const activeCount = rows.filter(
+    (r) => r.isActive && userReviewState(r) !== "frozen",
+  ).length;
 
   const [filters, setFilters] = useState({});
-  function setFilter(key, value) {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  }
-  const [accessFilter, setAccessFilter] = useState({
+  const EMPTY_ACCESS_FILTER = {
     fullAccessOnly: false,
     projects: [],
     companies: [],
     cities: [],
-  });
+  };
+  const [accessFilter, setAccessFilter] = useState(EMPTY_ACCESS_FILTER);
+
+  // Any normal search criterion clears an active tile drill-down.
+  function setFilter(key, value) {
+    setTileFilter(null);
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  }
+  function changeAccessFilter(v) {
+    setTileFilter(null);
+    setAccessFilter(v);
+  }
+  function changeOnlyNeedsReview(checked) {
+    setTileFilter(null);
+    setOnlyNeedsReview(checked);
+  }
+
+  // A tile click: show only that slice, wiping every other filter.
+  // Clicking the same tile again clears the drill-down.
+  function applyTileFilter(key) {
+    setTileFilter((cur) => (cur === key ? null : key));
+    setFilters({});
+    setAccessFilter(EMPTY_ACCESS_FILTER);
+    setOnlyNeedsReview(false);
+  }
+  function matchesTile(r) {
+    if (!tileFilter || tileFilter === "all") return true;
+    const st = userReviewState(r);
+    if (tileFilter === "active") return r.isActive && st !== "frozen";
+    if (tileFilter === "frozen") return st === "frozen";
+    if (tileFilter === "due_soon") return st === "due_soon";
+    return true;
+  }
   const [sort, setSort] = useSortState("name");
   const filteredRows = sortRows(
     rows
@@ -51,7 +87,8 @@ function UsersScreen({
         (r) =>
           !onlyNeedsReview ||
           ["due_soon", "frozen"].includes(userReviewState(r)),
-      ),
+      )
+      .filter(matchesTile),
     sort,
     {
       name: (r) => userFullName(r),
@@ -88,38 +125,123 @@ function UsersScreen({
           </button>
         }
       />
-      {frozenCount > 0 && (
-        <div className="alert alert-danger small py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
-          <span>
-            🔒 Access frozen for {frozenCount} user
-            {frozenCount > 1 ? "s" : ""} — their quarterly review is
-            overdue. They can't use the portal until reviewed.
+      <div className="row g-2 mb-2">
+        {[
+          {
+            key: "all",
+            l: "Total users",
+            v: rows.length,
+            i: "👥",
+            hint: "All developer-portal users on this account.",
+          },
+          {
+            key: "active",
+            l: "Active users",
+            v: activeCount,
+            i: "✅",
+            hint: "Users who can currently sign in and use the portal.",
+          },
+          {
+            key: "frozen",
+            l: "Access frozen",
+            v: frozenCount,
+            i: "🔒",
+            alarm: frozenCount > 0,
+            tone: frozenCount > 0 ? "text-danger" : "",
+            accent: "#dc3545",
+            wash: "#f8d7da",
+            hint:
+              frozenCount > 0
+                ? "🔒 Access frozen for " +
+                  frozenCount +
+                  " user" +
+                  (frozenCount > 1 ? "s" : "") +
+                  " — their quarterly review is overdue. They can't use the portal until reviewed. Click to view them."
+                : "No users have frozen access.",
+          },
+          {
+            key: "due_soon",
+            l: "Periodic review due",
+            v: dueSoonCount,
+            i: "⏳",
+            alarm: dueSoonCount > 0,
+            tone: dueSoonCount > 0 ? "text-warning" : "",
+            accent: "#ffc107",
+            wash: "#fff3cd",
+            hint:
+              dueSoonCount > 0
+                ? "⏳ Periodic review due for " +
+                  dueSoonCount +
+                  " user" +
+                  (dueSoonCount > 1 ? "s" : "") +
+                  " within 20 days — required quarterly for all builder users. Click to view them."
+                : "No users are due for review in the next 20 days.",
+          },
+        ].map((k) => {
+          const active = tileFilter === k.key;
+          const style = {};
+          if (k.alarm) {
+            style.borderColor = k.accent;
+            style.background = k.wash;
+          }
+          if (active) {
+            style.borderColor = "var(--navy)";
+            style.boxShadow = "0 0 0 2px var(--navy) inset";
+          }
+          return (
+            <div className="col-6 col-lg-3" key={k.key}>
+              <div
+                className="kpi-card p-2 h-100"
+                role="button"
+                aria-pressed={active}
+                title={k.hint}
+                onClick={() => applyTileFilter(k.key)}
+                style={Object.keys(style).length ? style : undefined}
+              >
+                <div className="d-flex justify-content-between align-items-center">
+                  <span className="text-secondary" style={{ fontSize: 11.5 }}>
+                    {k.l}
+                  </span>
+                  <span
+                    className="icon-chip"
+                    style={{ width: 22, height: 22, fontSize: 11 }}
+                  >
+                    {k.i}
+                  </span>
+                </div>
+                <div className={"fs-6 fw-bold mt-1 " + (k.tone || "")}>
+                  {k.v}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {tileFilter && (
+        <div className="d-flex align-items-center gap-2 small mb-3">
+          <span className="text-secondary">
+            Showing{" "}
+            <span className="fw-semibold">
+              {tileFilter === "all"
+                ? "all users"
+                : tileFilter === "active"
+                  ? "active users"
+                  : tileFilter === "frozen"
+                    ? "access-frozen users"
+                    : "users with periodic review due"}
+            </span>{" "}
+            ({filteredRows.length}) — other filters cleared
           </span>
           <button
-            className="btn btn-outline-danger btn-sm"
-            onClick={() => setOnlyNeedsReview(true)}
+            className="btn btn-link btn-sm p-0"
+            onClick={() => setTileFilter(null)}
           >
-            Show these users
-          </button>
-        </div>
-      )}
-      {dueSoonCount > 0 && (
-        <div className="alert alert-warning small py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
-          <span>
-            ⏳ Periodic review due for {dueSoonCount} user
-            {dueSoonCount > 1 ? "s" : ""} within 20 days — required
-            quarterly for all builder users.
-          </span>
-          <button
-            className="btn btn-outline-navy btn-sm"
-            onClick={() => setOnlyNeedsReview(true)}
-          >
-            Show these users
+            Clear
           </button>
         </div>
       )}
 
-      <AccessFilterBar value={accessFilter} onChange={setAccessFilter} />
+      <AccessFilterBar value={accessFilter} onChange={changeAccessFilter} />
 
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
         <div className="form-check">
@@ -128,7 +250,7 @@ function UsersScreen({
             type="checkbox"
             id="onlyneedsreview"
             checked={onlyNeedsReview}
-            onChange={(e) => setOnlyNeedsReview(e.target.checked)}
+            onChange={(e) => changeOnlyNeedsReview(e.target.checked)}
           />
           <label
             className="form-check-label small"

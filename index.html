@@ -4,14 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Developer Portal — React + Bootstrap Prototype</title>
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
-      rel="stylesheet"
-    />
+    <!-- All third-party libraries are served from the local vendor/
+         folder — no external CDN calls at runtime, so the app works
+         inside a locked-down (no outbound internet) bank network. -->
+    <link href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="vendor/leaflet/leaflet.min.css" rel="stylesheet" />
     <style>
       :root {
         --navy: #0b3d7a;
@@ -901,13 +898,15 @@
   <body>
     <div id="root"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
-    <!-- Real OCR engine for cancelled-cheque auto-fill (client-side, no server) -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+    <script src="vendor/react/react.production.min.js"></script>
+    <script src="vendor/react-dom/react-dom.production.min.js"></script>
+    <script src="vendor/babel/babel.min.js"></script>
+    <script src="vendor/leaflet/leaflet.min.js"></script>
+    <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+    <!-- Real OCR engine for cancelled-cheque auto-fill (client-side, no server).
+         Worker / WASM core / language data are also served from vendor/tesseract
+         (see BankEntryScreen.jsx, which passes the local paths to createWorker). -->
+    <script src="vendor/tesseract/tesseract.min.js"></script>
 
     <script type="text/babel" src="src/bootstrap/react-hooks.js"></script>
     <script type="text/babel" src="src/data/projects.js"></script>
@@ -925,72 +924,252 @@
     <script type="text/babel" src="src/data/campaigns.js"></script>
     <script type="text/babel" src="src/data/disbursement.js"></script>
     <script type="text/babel" src="src/components/common/Modal.jsx"></script>
-    <script type="text/babel" src="src/components/common/FormElements.jsx"></script>
-    <script type="text/babel" src="src/components/common/ProjectPickerField.jsx"></script>
-    <script type="text/babel" src="src/components/common/PasswordPolicyChecklist.jsx"></script>
-    <script type="text/babel" src="src/components/common/GridControls.jsx"></script>
+    <script
+      type="text/babel"
+      src="src/components/common/FormElements.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/components/common/ProjectPickerField.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/components/common/PasswordPolicyChecklist.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/components/common/GridControls.jsx"
+    ></script>
     <script type="text/babel" src="src/components/common/Icons.jsx"></script>
     <script type="text/babel" src="src/components/common/TopBar.jsx"></script>
-    <script type="text/babel" src="src/components/common/FilterDropdown.jsx"></script>
-    <script type="text/babel" src="src/components/common/AccessFilterBar.jsx"></script>
-    <script type="text/babel" src="src/components/common/AccessLevelPicker.jsx"></script>
-    <script type="text/babel" src="src/components/common/ReviewHelpers.jsx"></script>
-    <script type="text/babel" src="src/components/common/FileUpload.jsx"></script>
-    <script type="text/babel" src="src/components/common/ChatbotWidget.jsx"></script>
-    <script type="text/babel" src="src/components/common/ForgotUserIdModal.jsx"></script>
-    <script type="text/babel" src="src/components/common/DemoSettingsModal.jsx"></script>
+    <script
+      type="text/babel"
+      src="src/components/common/FilterDropdown.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/components/common/AccessFilterBar.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/components/common/AccessLevelPicker.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/components/common/ReviewHelpers.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/components/common/FileUpload.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/components/common/ChatbotWidget.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/components/common/ForgotUserIdModal.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/components/common/DemoSettingsModal.jsx"
+    ></script>
     <script type="text/babel" src="src/shell/Sidebar.jsx"></script>
     <script type="text/babel" src="src/shell/TopMasthead.jsx"></script>
     <script type="text/babel" src="src/screens/auth/LoginScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/auth/RegistrationScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/auth/ForgotPasswordScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/overview/HomeScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/overview/DashboardScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/overview/ProfileScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/overview/AccessRevokedScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/company/CompanyListingScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/company/CompanyEntryScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/company/DeveloperProfileScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/company/CompanyUsersScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/users/UserFormScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/users/ReviewUserPanel.jsx"></script>
+    <script
+      type="text/babel"
+      src="src/screens/auth/RegistrationScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/auth/ForgotPasswordScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/overview/HomeScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/overview/DashboardScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/overview/ProfileScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/overview/AccessRevokedScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/company/CompanyListingScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/company/CompanyEntryScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/company/DeveloperProfileScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/company/CompanyUsersScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/users/UserFormScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/users/ReviewUserPanel.jsx"
+    ></script>
     <script type="text/babel" src="src/screens/users/UsersScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/users/PasskeyScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/projects/ProjectsMapView.jsx"></script>
-    <script type="text/babel" src="src/screens/projects/ProjectsScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/projects/ProjectSummaryTabs.jsx"></script>
-    <script type="text/babel" src="src/screens/projects/ProjectSummaryScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/projects/RERASearchBox.jsx"></script>
-    <script type="text/babel" src="src/screens/projects/NewProjectScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/projects/QueryModals.jsx"></script>
-    <script type="text/babel" src="src/screens/projects/RaiseQueryScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/projects/ProjectNotificationsScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/projects/QueriesScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/projects/MyQueriesScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/project-data/BankListingScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/project-data/BankEntryScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/project-data/RERAScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/project-data/OCScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/project-data/ConstructionFinanceScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/project-data/InventoryScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/project-data/WorkProgressFileViewModal.jsx"></script>
-    <script type="text/babel" src="src/screens/project-data/WorkProgressScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/project-data/WorkProgressUpdateScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/project-data/WorkProgressHistoryScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/project-data/UnitDataScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/business/LeadsListingScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/business/LeadsEntryScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/business/CampaignsListingScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/business/CampaignViewModal.jsx"></script>
-    <script type="text/babel" src="src/screens/business/CampaignEntryScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/business/BankCampaignsScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/mis/DisbursementDetailModal.jsx"></script>
-    <script type="text/babel" src="src/screens/mis/DisbursementStatementScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/tools/DisbursementScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/tools/CalculatorsScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/tools/ProjectCoordinatorsScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/tools/IssueListingScreen.jsx"></script>
-    <script type="text/babel" src="src/screens/tools/RaiseIssueScreen.jsx"></script>
+    <script
+      type="text/babel"
+      src="src/screens/users/PasskeyScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/projects/ProjectsMapView.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/projects/ProjectsScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/projects/ProjectSummaryTabs.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/projects/ProjectSummaryScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/projects/RERASearchBox.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/projects/NewProjectScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/projects/QueryModals.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/projects/RaiseQueryScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/projects/ProjectNotificationsScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/projects/QueriesScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/projects/MyQueriesScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/project-data/BankListingScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/project-data/BankEntryScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/project-data/RERAScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/project-data/OCScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/project-data/ConstructionFinanceScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/project-data/InventoryScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/project-data/WorkProgressFileViewModal.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/project-data/WorkProgressScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/project-data/WorkProgressUpdateScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/project-data/WorkProgressHistoryScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/project-data/UnitDataScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/business/LeadsListingScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/business/LeadsEntryScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/business/CampaignsListingScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/business/CampaignViewModal.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/business/CampaignEntryScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/business/BankCampaignsScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/mis/DisbursementDetailModal.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/mis/DisbursementStatementScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/tools/DisbursementScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/tools/CalculatorsScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/tools/ProjectCoordinatorsScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/tools/IssueListingScreen.jsx"
+    ></script>
+    <script
+      type="text/babel"
+      src="src/screens/tools/RaiseIssueScreen.jsx"
+    ></script>
     <script type="text/babel" src="src/shell/AppShell.jsx"></script>
     <script type="text/babel" src="src/App.jsx"></script>
     <script type="text/babel" src="src/main.jsx"></script>

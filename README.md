@@ -12,9 +12,18 @@ No build step, no `npm install`. Exactly like before:
 npx serve .
 ```
 
-Then open the URL it prints. That's it — `index.html` pulls React,
-ReactDOM, Babel Standalone, Bootstrap and Leaflet from CDNs, and loads
-every screen file straight from `src/`.
+Then open the URL it prints. That's it — `index.html` loads React,
+ReactDOM, Babel Standalone, Bootstrap, Leaflet and Tesseract.js from
+the local `vendor/` folder (no CDN / no outbound internet at runtime,
+so it runs inside a locked-down bank network), and loads every screen
+file straight from `src/`.
+
+The one resource that can't be bundled is world **map imagery** — it's
+gigabytes. `src/data/maps.js` points the Street/Satellite/Terrain
+layers at public tile servers for the prototype; swap those `url`s for
+the bank's internal/licensed tile endpoint in a real deployment. If
+tiles can't be reached, the map view falls back to an offline
+schematic grid and pins/pop-ups/pan/zoom keep working.
 
 ## Why there's no build step
 
@@ -37,8 +46,12 @@ together, and before `src/main.jsx`, which must always load last).
 ## Folder layout
 
 ```
-index.html                  Head/CSS, CDN <script> tags, and the ordered
-                             list of every src/ file to load.
+index.html                  Head/CSS, local vendor/ <script> tags, and
+                             the ordered list of every src/ file to load.
+vendor/                      Third-party libraries served locally
+                             (React, ReactDOM, Babel Standalone, Bootstrap,
+                             Leaflet + marker images, Tesseract.js + its
+                             worker/WASM core/eng language data). No CDN.
 src/bootstrap/               React hooks bootstrap (must load first).
 src/data/                    Mock/demo data + pure helper functions,
                              grouped by domain (projects, company, users,

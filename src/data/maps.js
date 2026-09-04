@@ -16,8 +16,16 @@
 // dot on some systems).
 // Real interactive map — Leaflet with a Street / Satellite / Terrain
 // toggle, plotted using each project's actual lat/lng (see
-// BUILDER_PROJECT_DETAILS). All three tile providers are free,
-// no API key required. Replaces the earlier schematic placeholder.
+// BUILDER_PROJECT_DETAILS).
+//
+// NOTE — the only runtime resource this app cannot ship locally is
+// world map imagery (it is far too large to bundle). The URLs below
+// are public tile servers used for the prototype. For a bank
+// deployment, replace each `url` with the bank's own internal /
+// licensed tile endpoint (same {z}/{x}/{y} template) — nothing else
+// needs to change. If tiles cannot be reached at all, ProjectsMapView
+// automatically falls back to an offline schematic grid so pins,
+// pop-ups, pan and zoom keep working.
 const MAP_TILE_LAYERS = {
   street: {
     label: "Street",

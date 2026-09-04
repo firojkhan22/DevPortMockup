@@ -362,7 +362,7 @@ function BankEntryScreen({ onMenuClick, onDone, editingAccount }) {
     try {
       if (!window.Tesseract) {
         throw new Error(
-          "The OCR engine didn't load — check your internet connection and try again."
+          "The OCR engine didn't load — make sure vendor/tesseract/ is present and reload the page."
         );
       }
       const canvas = await loadPreprocessedChequeCanvas(chequeFileObj);
@@ -374,7 +374,19 @@ function BankEntryScreen({ onMenuClick, onDone, editingAccount }) {
       // has a clean, confirmed 3rd "output" argument specifically for
       // requesting word/block position data without touching anything
       // that could affect recognition quality itself.
+      // Worker script, WASM core and the "eng" language data are all
+      // served from the local vendor/tesseract folder (see index.html)
+      // so OCR runs with zero external network calls — required inside
+      // a locked-down bank network. Absolute URLs so the paths still
+      // resolve correctly from inside the Web Worker context.
+      const tessBase = new URL(
+        "vendor/tesseract/",
+        window.location.href
+      ).href;
       worker = await window.Tesseract.createWorker("eng", 1, {
+        workerPath: tessBase + "worker.min.js",
+        corePath: tessBase,
+        langPath: tessBase,
         logger: (m) => {
           if (
             m.status === "recognizing text" &&

@@ -11,6 +11,7 @@ function ProjectsMapView({ rows, onOpenProject }) {
   const markersRef = useRef([]);
   const tileLayerRef = useRef(null);
   const [mapStyle, setMapStyle] = useState("street");
+  const [tilesOffline, setTilesOffline] = useState(false);
 
   // Keep a live ref to the latest onOpenProject so the raw-DOM popup
   // button (built once per marker, outside React's render cycle) can
@@ -137,17 +138,37 @@ function ProjectsMapView({ rows, onOpenProject }) {
     if (!map || typeof L === "undefined") return;
     if (tileLayerRef.current) {
       map.removeLayer(tileLayerRef.current);
+      tileLayerRef.current = null;
     }
     const layer = MAP_TILE_LAYERS[mapStyle] || MAP_TILE_LAYERS.street;
-    tileLayerRef.current = L.tileLayer(layer.url, layer.options).addTo(map);
+    const tl = L.tileLayer(layer.url, layer.options);
+    // If the tile server is unreachable (e.g. a locked-down bank
+    // network with no route to it), stop retrying and let the map
+    // fall back to the offline schematic grid drawn behind the pane.
+    let errCount = 0;
+    tl.on("tileerror", () => {
+      errCount += 1;
+      if (errCount >= 3) {
+        setTilesOffline(true);
+        if (tileLayerRef.current) {
+          map.removeLayer(tileLayerRef.current);
+          tileLayerRef.current = null;
+        }
+      }
+    });
+    tl.on("tileload", () => {
+      setTilesOffline((v) => (v ? false : v));
+    });
+    tileLayerRef.current = tl.addTo(map);
   }, [mapStyle]);
 
   return (
     <div className="kpi-card p-3">
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
         <div className="small text-secondary">
-          Live map — scroll to zoom, hover a pin for project details.
-          Locations are approximate, city-level coordinates.
+          {tilesOffline
+            ? "Offline schematic view — map imagery isn't reachable on this network, but pin positions, pop-ups, pan and zoom all still work."
+            : "Live map — scroll to zoom, hover a pin for project details. Locations are approximate, city-level coordinates."}
         </div>
         <div className="btn-group btn-group-sm" role="group" aria-label="Map view">
           {Object.entries(MAP_TILE_LAYERS).map(([key, layer]) => (
@@ -174,7 +195,16 @@ function ProjectsMapView({ rows, onOpenProject }) {
           overflow: "hidden",
         }}
       >
-        <div ref={mapElRef} style={{ width: "100%", height: "100%" }} />
+        <div
+          ref={mapElRef}
+          style={{
+            width: "100%",
+            height: "100%",
+            background: tilesOffline
+              ? "repeating-linear-gradient(0deg,transparent 0 39px,#d6deea 39px 40px), repeating-linear-gradient(90deg,transparent 0 39px,#d6deea 39px 40px), #eef2f7"
+              : "#e9edf3",
+          }}
+        />
       </div>
     </div>
   );
