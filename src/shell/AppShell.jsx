@@ -737,6 +737,8 @@ function AppShell({
       />
     ),
     raiseIssue: <RaiseIssueScreen onMenuClick={mc} />,
+    // TEST: Chunk Upload probe — remove this line to drop the feature
+    chunkUploadTest: <ChunkUploadTestScreen onMenuClick={mc} />,
   };
 
   function cycleSidebar() {

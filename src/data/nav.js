@@ -41,6 +41,7 @@ const NAV_LABEL_MAP = {
   coordinators: { label: "Project Coordinators", icon: "👥" },
   issueListing: { label: "Issue Listing", icon: "🗂️" },
   raiseIssue: { label: "Raise Issue", icon: "🚩" },
+  chunkUploadTest: { label: "Chunk Upload Test", icon: "🧪" }, // TEST: remove anytime
 };
 
 const TOPBAR_ICONS = [
@@ -97,6 +98,7 @@ const ALWAYS_UNLOCKED_SCREENS = [
   "usersListing",
   "userForm",
   "passkey",
+  "chunkUploadTest", // TEST: remove anytime
 ];
 const PENDING_UNLOCKED_SCREENS = [
   ...ALWAYS_UNLOCKED_SCREENS,

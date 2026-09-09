@@ -88,6 +88,8 @@ function Sidebar({
         { id: "coordinators", label: "Project Coordinators", icon: "👥" },
         { id: "issueListing", label: "Issue Listing", icon: "🗂️" },
         { id: "raiseIssue", label: "Raise Issue", icon: "🚩" },
+        // TEST: Chunk Upload probe — remove this line to drop the menu link
+        { id: "chunkUploadTest", label: "Chunk Upload Test", icon: "🧪" },
       ],
     },
   ];
